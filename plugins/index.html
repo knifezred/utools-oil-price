@@ -96,7 +96,8 @@
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
         var str = xhr.responseText.split('<div id="left">')[1].split('<div id="right">')[0]
-        $('#content').html('<div>' + str.replace('document.writeln', 'console.log').replace('document.writeln', 'console.log'));
+        str = str.replace(str.split('<ul')[0].split('<script>')[1], "").replace('<script>', '</div>')
+        $('#content').html('<div>' + str.replace('document.writeln', 'console.log'));
         var links = $('a')
         for (let index = 0; index < links.length; index++) {
           links[index].href = ''
