@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日油价</title>
+  <style>
+    dl,
+    dd,
+    ul {
+      list-style-type: none;
+      list-style-image: none;
+      list-style-position: outside;
+    }
+
+    a {
+      color: #5352ed;
+    }
+
+    .ylist {
+      width: 95%;
+      font-size: 1.2em;
+      text-align: center;
+      clear: both;
+      margin-top: 8px;
+      display: inline-block;
+    }
+
+    .ylist li {
+      width: 19%;
+      padding: 4px 0px;
+      float: left;
+      border-right: solid 1px #ccc;
+      border-bottom: solid 1px #ccc;
+    }
+
+    .ylist li.t {
+      width: 19%;
+      border-left: solid 1px #ccc;
+    }
+
+    .ylist li.h {
+      background-color: #5352ed;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    i {
+      color: #f94435;
+      font-weight: bold;
+      font-style: normal;
+    }
+
+    @media(prefers-color-scheme:light) {
+      .ylist li {
+        color: #5352ed;
+      }
+    }
+
+    @media(prefers-color-scheme:dark) {
+      html {
+        color: #d0ddd5;
+      }
+
+      a {
+        color: #d0ddd5;
+      }
+
+      #title {
+        color: #fff;
+      }
+
+      span {
+        color: #f94435 !important;
+        font-weight: bold;
+      }
+
+      .ylist li {
+        color: #d0ddd5;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="title" style="text-align: center;padding: 10px;font-size: 1.2em"></div>
+  <div id="content"> </div>
+</body>
+
+<script src="./js/jquery.min.js"></script>
+<script>
+  $(document).ready(function () {
+    var xhr = new XMLHttpRequest()
+    xhr.open('GET', 'http://www.qiyoujiage.com/', true)
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var str = xhr.responseText.split('<div id="left">')[1].split('<div id="right">')[0]
+        $('#content').html('<div>' + str.replace('document.writeln', 'console.log').replace('document.writeln', 'console.log'));
+        var links = $('a')
+        for (let index = 0; index < links.length; index++) {
+          links[index].href = ''
+          const element = links[index]
+          links[index].onclick = function () {
+            utools.dbStorage.setItem('province', links[index].innerText)
+            loadCurrentProvince()
+          }
+        }
+        loadCurrentProvince()
+      }
+    }
+    xhr.send(null)
+  });
+  function loadCurrentProvince() {
+    var childrenLi = $('.ylist')[0].children
+    var province = utools.dbStorage.getItem('province')
+    if (province == null) {
+      province = '北京'
+    }
+    for (var i = 0; i < childrenLi.length; i++) {
+      if (childrenLi[i].innerText == province) {
+        var henanText = childrenLi[i].innerText + '油价: '
+        henanText += '92号汽油 <i>' + childrenLi[i + 1].innerText + '</i> 元/升;'
+        henanText += '95号汽油 <i>' + childrenLi[i + 2].innerText + '</i> 元/升;'
+        henanText += '98号汽油 <i>' + childrenLi[i + 3].innerText + '</i> 元/升;'
+        henanText += '0号柴油 <i>' + childrenLi[i + 4].innerText + '</i> 元/升;'
+        $('#title').html(henanText)
+      }
+    }
+  }
+</script>
+
+</html>
