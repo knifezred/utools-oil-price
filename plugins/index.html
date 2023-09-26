@@ -6,46 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>今日油价</title>
   <style>
-    dl,
-    dd,
-    ul {
-      list-style-type: none;
-      list-style-image: none;
-      list-style-position: outside;
+    html {
+      font-size: 14px;
     }
 
     a {
       color: #5352ed;
-      font-size: 1em;
+      cursor: pointer;
     }
 
-    .ylist {
-      width: 95%;
-      font-size: 1.2em;
+    .oil-table {
+      width: 90%;
+      font-size: 1.2rem;
       text-align: center;
-      clear: both;
-      margin-top: 8px;
-      display: inline-table;
+      margin: auto;
+      border-collapse: collapse;
+      border: solid 1px #ccc;
     }
 
-    .ylist li {
-      width: 19%;
-      padding: 2px 0px;
-      display: inline-table;
-      float: left;
-      border-right: solid 1px #ccc;
-      border-bottom: solid 1px #ccc;
-    }
-
-    .ylist li.t {
-      border-left: solid 1px #ccc;
-    }
-
-    .ylist li.h {
+    .oil-table th {
       background-color: #5352ed;
       color: #fff;
-      font-weight: bold;
-      padding: 8px 0px;
+      height: 40px;
+    }
+
+    .oil-table .tr {
+      border: solid 1px #ccc;
+      padding: 2px 0px;
+      height: 30px;
     }
 
     i {
@@ -54,40 +42,53 @@
       font-style: normal;
     }
 
+    #title {
+      text-align: center;
+      margin: 8px;
+      font-size: 1.2rem;
+    }
+
     @media(prefers-color-scheme:light) {
-      .ylist li {
-        color: #5352ed;
+      html {
+        color: #2c3e50;
       }
     }
 
     @media(prefers-color-scheme:dark) {
       html {
-        color: #d0ddd5;
+        color: #adbac7;
+
+      }
+
+      .oil-table {
+        border: solid 1px #3e4c5a;
+      }
+
+      .oil-table th {
+        background-color: #5352ed;
+        color: #ccc;
+      }
+
+      .oil-table .tr {
+        border: solid 1px #3e4c5a;
       }
 
       a {
-        color: #d0ddd5;
-      }
-
-      #title {
-        color: #fff;
+        color: #adbac7;
       }
 
       span {
         color: #f94435 !important;
         font-weight: bold;
       }
-
-      .ylist li {
-        color: #d0ddd5;
-      }
     }
   </style>
 </head>
 
 <body>
-  <div id="title" style="text-align: center;padding: 10px;font-size: 1.2em"></div>
+  <div id="title"></div>
   <div id="content"> </div>
+  <div id="con-hide" style="display: none;"></div>
 </body>
 
 <script src="./js/jquery.min.js"></script>
@@ -97,25 +98,33 @@
     xhr.open('GET', 'http://www.qiyoujiage.com/', true)
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        var str = xhr.responseText.split('<div id="left">')[1].split('<div id="right">')[0]
-        str = str.replace(str.split('<ul')[0].split('<script>')[1], "").replace('<script>', '</div>')
-        $('#content').html('<div>' + str.replace('document.writeln', 'console.log'));
-        var links = $('a')
-        for (let index = 0; index < links.length; index++) {
-          links[index].href = ''
-          const element = links[index]
-          links[index].onclick = function () {
-            utools.dbStorage.setItem('province', links[index].innerText)
-            loadCurrentProvince()
-          }
+        var str = xhr.responseText.split('</ul>')[0] + "</ul>";
+        str = "<ul" + str.split('<ul')[1];
+        $('#con-hide').html(str);
+        var tableHtml = "<table class='oil-table'>";
+        tableHtml += '<thead><tr><th scope="col">地区</th><th scope="col">92号汽油</th><th scope="col">95号汽油</th><th scope="col">98号汽油</th><th scope="col">0号柴油</th></tr></thead>';
+        var childrenLi = $('.ylist')[0].children;
+        for (var i = 5; i < childrenLi.length; i++) {
+          tableHtml += "<tr class='tr'><td><a onclick=\"selectProvince('" + childrenLi[i].innerText + "')\">" + childrenLi[i].innerText + "</a></td><td>"
+            + childrenLi[i + 1].innerText + "</td><td>"
+            + childrenLi[i + 2].innerText + "</td><td>"
+            + childrenLi[i + 3].innerText + "</td><td>"
+            + childrenLi[i + 4].innerText + "</td></tr>";
+          i = i + 4;
         }
+        tableHtml += "</table>";
+        $('#content').html(tableHtml);
         loadCurrentProvince()
       }
     }
     xhr.send(null)
   });
+  function selectProvince(text) {
+    utools.dbStorage.setItem('province', text)
+    loadCurrentProvince()
+  }
   function loadCurrentProvince() {
-    var childrenLi = $('.ylist')[0].children
+    var childrenLi = $('td')
     var province = utools.dbStorage.getItem('province')
     if (province == null) {
       province = '北京'
