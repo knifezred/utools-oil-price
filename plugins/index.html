@@ -48,6 +48,10 @@
       font-size: 1.2rem;
     }
 
+    .sort_button {
+      padding-left: 3px;
+    }
+
     @media(prefers-color-scheme:light) {
       html {
         color: #2c3e50;
@@ -93,6 +97,7 @@
 
 <script src="./js/jquery.min.js"></script>
 <script>
+  var listData = []
   $(document).ready(function () {
     var xhr = new XMLHttpRequest()
     xhr.open('GET', 'http://www.qiyoujiage.com/', true)
@@ -101,24 +106,89 @@
         var str = xhr.responseText.split('</ul>')[0] + "</ul>";
         str = "<ul" + str.split('<ul')[1];
         $('#con-hide').html(str);
-        var tableHtml = "<table class='oil-table'>";
-        tableHtml += '<thead><tr><th scope="col">地区</th><th scope="col">92号汽油</th><th scope="col">95号汽油</th><th scope="col">98号汽油</th><th scope="col">0号柴油</th></tr></thead>';
         var childrenLi = $('.ylist')[0].children;
         for (var i = 5; i < childrenLi.length; i++) {
-          tableHtml += "<tr class='tr'><td><a onclick=\"selectProvince('" + childrenLi[i].innerText + "')\">" + childrenLi[i].innerText + "</a></td><td>"
-            + childrenLi[i + 1].innerText + "</td><td>"
-            + childrenLi[i + 2].innerText + "</td><td>"
-            + childrenLi[i + 3].innerText + "</td><td>"
-            + childrenLi[i + 4].innerText + "</td></tr>";
+          listData.push({
+            'title': childrenLi[i].innerText,
+            'oil92': childrenLi[i + 1].innerText,
+            'oil95': childrenLi[i + 2].innerText,
+            'oil98': childrenLi[i + 3].innerText,
+            'oil_c': childrenLi[i + 4].innerText
+          });
           i = i + 4;
         }
-        tableHtml += "</table>";
-        $('#content').html(tableHtml);
+        listData.sort(function (x, y) {
+          return x.title.localeCompare(y.title, 'zh-CN');
+        });
+        loadTable();
         loadCurrentProvince()
       }
     }
     xhr.send(null)
   });
+
+
+  function loadTable() {
+    var tableHtml = "<table class='oil-table'>";
+    tableHtml += '<thead><tr><th scope="col">地区<span class="sort_button" onclick="sortTable(1)"><img src="./sort.svg"/></span></th><th scope="col">92号汽油<span onclick="sortTable(2)" class="sort_button"><img src="./sort.svg"/></span></th><th scope="col">95号汽油<span class="sort_button" onclick="sortTable(3)"><img src="./sort.svg"/></span></th><th scope="col">98号汽油<span class="sort_button" onclick="sortTable(4)"><img src="./sort.svg"/></span></th><th scope="col">0号柴油<span class="sort_button" onclick="sortTable(5)"><img src="./sort.svg"/></span></th></tr></thead>';
+    listData.forEach(element => {
+      tableHtml += "<tr class='tr'><td><a onclick=\"selectProvince('" + element.title + "')\">" + element.title + "</a></td><td>"
+        + element.oil92 + "</td><td>"
+        + element.oil95 + "</td><td>"
+        + element.oil98 + "</td><td>"
+        + element.oil_c + "</td></tr>";
+    });
+    tableHtml += "</table>";
+    $('#content').html(tableHtml);
+  }
+
+  var lastSortType = 1
+  function sortTable(type) {
+    if (type == 1) {
+      listData.sort(function (x, y) {
+        if (lastSortType == 1) {
+          type = 0;
+          return y.title.localeCompare(x.title, 'zh-CN');
+        }
+        return x.title.localeCompare(y.title, 'zh-CN');
+      });
+    } else if (type == 2) {
+      listData.sort(function (x, y) {
+        if (lastSortType == 2) {
+          type = 0;
+          return y.oil92 - x.oil92;
+        }
+        return x.oil92 - y.oil92;
+      });
+    } else if (type == 3) {
+      listData.sort(function (x, y) {
+        if (lastSortType == 3) {
+          type = 0;
+          return y.oil95 - x.oil95;
+        }
+        return x.oil95 - y.oil95;
+      });
+    } else if (type == 4) {
+      listData.sort(function (x, y) {
+        if (lastSortType == 4) {
+          type = 0;
+          return y.oil98 - x.oil98;
+        }
+        return x.oil98 - y.oil98;
+      });
+    } else if (type == 5) {
+      listData.sort(function (x, y) {
+        if (lastSortType == 5) {
+          type = 0;
+          return y.oil_c - x.oil_c;
+        }
+        return x.oil_c - y.oil_c;
+      });
+    }
+    lastSortType = type
+    loadTable();
+  }
+
   function selectProvince(text) {
     utools.dbStorage.setItem('province', text)
     loadCurrentProvince()
