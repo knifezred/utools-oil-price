@@ -10,13 +10,16 @@
       font-size: 14px;
     }
 
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+
     a {
-      color: #5352ed;
       cursor: pointer;
     }
 
-    .oil-table {
-      width: 90%;
+    .layui-table {
+      width: 96%;
       font-size: 1.2rem;
       text-align: center;
       margin: auto;
@@ -24,16 +27,15 @@
       border: solid 1px #ccc;
     }
 
-    .oil-table th {
+    .layui-table thead {
       background-color: #5352ed;
       color: #fff;
       height: 40px;
     }
 
-    .oil-table .tr {
-      border: solid 1px #ccc;
-      padding: 2px 0px;
-      height: 30px;
+    tbody tr td {
+      border-bottom: solid 1px #ccc;
+      padding: .5rem;
     }
 
     i {
@@ -64,21 +66,17 @@
 
       }
 
-      .oil-table {
+      .layui-table {
         border: solid 1px #3e4c5a;
       }
 
-      .oil-table th {
+      .layui-table thead {
         background-color: #5352ed;
         color: #ccc;
       }
 
-      .oil-table .tr {
-        border: solid 1px #3e4c5a;
-      }
-
-      a {
-        color: #adbac7;
+      tbody tr td {
+        border-bottom: solid 1px #3e4c5a;
       }
 
       span {
@@ -100,93 +98,85 @@
   var listData = []
   $(document).ready(function () {
     var xhr = new XMLHttpRequest()
-    xhr.open('GET', 'http://www.qiyoujiage.com/', true)
+    xhr.open('GET', 'https://oil.nbsasu.com/', true)
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        var str = xhr.responseText.split('</ul>')[0] + "</ul>";
-        str = "<ul" + str.split('<ul')[1];
+        var str = xhr.responseText;
         $('#con-hide').html(str);
-        var childrenLi = $('.ylist')[0].children;
-        for (var i = 5; i < childrenLi.length; i++) {
-          listData.push({
-            'title': childrenLi[i].innerText,
-            'oil92': childrenLi[i + 1].innerText,
-            'oil95': childrenLi[i + 2].innerText,
-            'oil98': childrenLi[i + 3].innerText,
-            'oil_c': childrenLi[i + 4].innerText
-          });
-          i = i + 4;
-        }
-        listData.sort(function (x, y) {
-          return x.title.localeCompare(y.title, 'zh-CN');
+        $("#content").html($('.layui-table')[0])
+        $('#con-hide').html('');
+        $("thead").html('<tr><th>地区<span class="sort_button" onclick="sortTable(0)"><img src="./sort.svg"/></span></th><th>92号汽油<span onclick="sortTable(1)" class="sort_button"><img src="./sort.svg"/></span></th><th>95号汽油<span class="sort_button" onclick="sortTable(2)"><img src="./sort.svg"/></span></th><th>98号汽油<span class="sort_button" onclick="sortTable(3)"><img src="./sort.svg"/></span></th><th>0号柴油<span class="sort_button" onclick="sortTable(4)"><img src="./sort.svg"/></span></th><th>更新时间</th></tr>')
+        document.querySelectorAll('a').forEach(function (link) {
+          link.removeAttribute('href');
+          link.onclick = function (event) {
+            selectProvince(this.textContent)
+          }
         });
-        loadTable();
         loadCurrentProvince()
       }
     }
     xhr.send(null)
+
   });
 
-
-  function loadTable() {
-    var tableHtml = "<table class='oil-table'>";
-    tableHtml += '<thead><tr><th scope="col">地区<span class="sort_button" onclick="sortTable(1)"><img src="./sort.svg"/></span></th><th scope="col">92号汽油<span onclick="sortTable(2)" class="sort_button"><img src="./sort.svg"/></span></th><th scope="col">95号汽油<span class="sort_button" onclick="sortTable(3)"><img src="./sort.svg"/></span></th><th scope="col">98号汽油<span class="sort_button" onclick="sortTable(4)"><img src="./sort.svg"/></span></th><th scope="col">0号柴油<span class="sort_button" onclick="sortTable(5)"><img src="./sort.svg"/></span></th></tr></thead>';
-    listData.forEach(element => {
-      tableHtml += "<tr class='tr'><td><a onclick=\"selectProvince('" + element.title + "')\">" + element.title + "</a></td><td>"
-        + element.oil92 + "</td><td>"
-        + element.oil95 + "</td><td>"
-        + element.oil98 + "</td><td>"
-        + element.oil_c + "</td></tr>";
-    });
-    tableHtml += "</table>";
-    $('#content').html(tableHtml);
-  }
-
-  var lastSortType = 1
-  function sortTable(type) {
-    if (type == 1) {
-      listData.sort(function (x, y) {
-        if (lastSortType == 1) {
-          type = 0;
-          return y.title.localeCompare(x.title, 'zh-CN');
-        }
-        return x.title.localeCompare(y.title, 'zh-CN');
-      });
-    } else if (type == 2) {
-      listData.sort(function (x, y) {
-        if (lastSortType == 2) {
-          type = 0;
-          return y.oil92 - x.oil92;
-        }
-        return x.oil92 - y.oil92;
-      });
-    } else if (type == 3) {
-      listData.sort(function (x, y) {
-        if (lastSortType == 3) {
-          type = 0;
-          return y.oil95 - x.oil95;
-        }
-        return x.oil95 - y.oil95;
-      });
-    } else if (type == 4) {
-      listData.sort(function (x, y) {
-        if (lastSortType == 4) {
-          type = 0;
-          return y.oil98 - x.oil98;
-        }
-        return x.oil98 - y.oil98;
-      });
-    } else if (type == 5) {
-      listData.sort(function (x, y) {
-        if (lastSortType == 5) {
-          type = 0;
-          return y.oil_c - x.oil_c;
-        }
-        return x.oil_c - y.oil_c;
-      });
+  function sortTable(n) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchCount = 0;
+    table = $('#content .layui-table')[0];
+    switching = true;
+    const locale = 'zh-Hans-CN'
+    // 设置排序方向
+    dir = "asc";
+    // 清除之前的排序类（如果有的话）
+    var headers = table.getElementsByTagName("TH");
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].className = headers[i].className.replace(" asc", "").replace(" desc", "");
     }
-    lastSortType = type
-    loadTable();
+    headers[n].className += dir;
+    // 创建一个循环，只要switching为true就继续
+    while (switching) {
+      // 从第二行开始，第一行是表头
+      switching = false;
+      rows = table.rows;
+      // 遍历除了表头外的所有行
+      for (i = 1; i < (rows.length - 1); i++) {
+        // 开始比较相邻的行
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[n];
+        y = rows[i + 1].getElementsByTagName("TD")[n];
+        // 根据排序方向比较两个元素
+        if (dir == "asc") {
+          var compareResult = x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()
+          if (n == 0) {
+            compareResult = x.textContent.localeCompare(y.textContent, locale, { sensitivity: 'accent' }) > 0
+          }
+          if (compareResult) {
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir == "desc") {
+          var compareResult = x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()
+          if (n == 0) {
+            compareResult = y.textContent.localeCompare(x.textContent, locale, { sensitivity: 'accent' }) > 0
+          }
+          if (compareResult) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        // 如果需要交换，则交换行
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        switchCount++;
+      } else {
+        // 如果已经遍历完所有行且没有交换，则改变排序方向
+        if (switchCount == 0 && dir == "asc") {
+          dir = "desc";
+          switching = true;
+        }
+      }
+    }
   }
 
   function selectProvince(text) {
