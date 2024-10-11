@@ -95,8 +95,7 @@
 
 <script src="./js/jquery.min.js"></script>
 <script>
-  var listData = []
-  $(document).ready(function () {
+  function loadOilInfoPage() {
     var xhr = new XMLHttpRequest()
     xhr.open('GET', 'https://oil.nbsasu.com/', true)
     xhr.onreadystatechange = function () {
@@ -116,8 +115,7 @@
       }
     }
     xhr.send(null)
-
-  });
+  }
 
   function sortTable(n) {
     var table, rows, switching, i, x, y, shouldSwitch, dir, switchCount = 0;
@@ -183,6 +181,7 @@
     utools.dbStorage.setItem('province', text)
     loadCurrentProvince()
   }
+
   function loadCurrentProvince() {
     var childrenLi = $('td')
     var province = utools.dbStorage.getItem('province')
@@ -200,6 +199,9 @@
       }
     }
   }
+  utools.onPluginEnter(({ code, type, payload, option }) => {
+    loadOilInfoPage()
+  })
 </script>
 
 </html>
